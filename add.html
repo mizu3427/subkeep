@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subkeep - サブスクリプション追加</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>追加フォーム</h1>
+
+    <form id="subscription-form">
+      <label>サービス名</label>
+      <input type="text" id="name" required />
+
+      <label>金額（¥）</label>
+      <input type="number" id="amount" required />
+
+      <label>頻度</label>
+      <select id="frequency">
+        <option value="monthly">月額</option>
+        <option value="yearly">年額</option>
+      </select>
+
+      <label>契約日</label>
+      <input type="date" id="start-date" required />
+
+      <label>次回支払日</label>
+      <input type="date" id="next-payment-date" required />
+
+      <button type="submit">追加</button>
+    </form>
+
+    <div class="nav-buttons">
+      <a href="index.html" class="nav-button">戻る</a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

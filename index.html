@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subkeep - サブスクリプション一覧</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Subkeep</h1>
+
+    <section class="summary">
+      <h2>費用概算</h2>
+      <p>月額合計: <span id="monthly-total">¥0</span></p>
+      <p>年額合計: <span id="yearly-total">¥0</span></p>
+    </section>
+
+    <section>
+      <h2>現在のサブスクリプション</h2>
+      <ul id="subscriptions-ul"></ul>
+      <p id="no-subscriptions">登録されたサブスクリプションはありません。</p>
+    </section>
+
+    <div class="nav-buttons">
+      <a href="add.html" class="nav-button">追加する</a>
+      <a href="history.html" class="nav-button">履歴を見る</a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

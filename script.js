@@ -1,4 +1,4 @@
-// ---- 共通ユーティリティ ----
+
 function getSubscriptions() {
   return JSON.parse(localStorage.getItem("subscriptions") || "[]");
 }
@@ -190,4 +190,3 @@ document.addEventListener("DOMContentLoaded", () => {
   handleAddPage();
   checkUpcomingPayments();
 });
-

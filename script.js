@@ -34,11 +34,11 @@ function checkUpcomingPayments() {
     const diffDays = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 3) {
-      sendNotification(`${sub.name} の支払いは3日後です`);
+      sendNotification(`${sub.name} の支払い（契約終了日）は3日後です`);
     } else if (diffDays === 1) {
-      sendNotification(`${sub.name} の支払いは明日です`);
+      sendNotification(`${sub.name} の支払い（契約終了日）は明日です`);
     } else if (diffDays === 0) {
-      sendNotification(`${sub.name} の支払い日です`);
+      sendNotification(`${sub.name} の支払い日（契約終了日）です`);
     }
   });
 }
@@ -190,3 +190,4 @@ document.addEventListener("DOMContentLoaded", () => {
   handleAddPage();
   checkUpcomingPayments();
 });
+

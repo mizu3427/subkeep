@@ -19,6 +19,7 @@
 
       <label>頻度</label>
       <select id="frequency">
+        <option value="daily">日額</option>
         <option value="monthly">月額</option>
         <option value="yearly">年額</option>
       </select>
@@ -26,8 +27,13 @@
       <label>契約日</label>
       <input type="date" id="start-date" required />
 
-      <label>次回支払日</label>
+      <label>次回支払日（契約終了日）</label>
       <input type="date" id="next-payment-date" required />
+
+<label>
+    <input type="checkbox" id="is-recurring" checked>
+    継続契約する
+  </label><br>
 
       <button type="submit">追加</button>
     </form>

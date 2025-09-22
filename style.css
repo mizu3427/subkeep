@@ -19,7 +19,7 @@ body {
     max-width: 600px;
 }
 
-h1, h2 {
+h1, h2,h3,h4 {
     color: #ffffff;
     text-align: center;
     margin-bottom: 25px;
@@ -178,4 +178,94 @@ section:last-child {
   margin: 0 auto;
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+/* スマホ用レイアウト調整 */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+    font-size: 14px; /* 全体の文字サイズを少し小さく */
+  }
+
+  .container {
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 95%; /* 画面幅いっぱいではなく少し余白を残す */
+  }
+
+  h1 {
+    font-size: 1.4em;
+  }
+  h2 {
+    font-size: 1.2em;
+  }
+  h3 {
+    font-size: 1.1em;
+  }
+
+  .summary p {
+    font-size: 0.95em; /* サマリー部分も小さめ */
+  }
+
+  .subscription-item {
+    padding: 10px;
+    font-size: 0.9em; /* サブスク情報小さめ */
+  }
+
+  .subscription-info strong {
+    font-size: 1em;
+  }
+
+  .delete-button {
+    padding: 6px 10px; /* 削除ボタンだけ少し小さく */
+    font-size: 0.85em;
+  }
+
+  .ad-banner img {
+    max-width: 100%;
+    height: auto; /* 広告は自然に縮小 */
+  }
+
+  /* ボタンは大きさそのまま */
+  .nav-buttons {
+    justify-content: space-between;
+    gap: 8px;
+  }
+}
+.hectare {
+    font-size: 0.8em;
+}
+
+@media (min-width: 768px) {
+    .hectare {
+        font-size: 0.65em;  /* PCは小さめに */
+    }
+}
+.hectare {
+    font-size: 0.65em;       /* パソコンでも小さく */
+    line-height: 1;          /* 行間で余計な高さを作らない */
+    vertical-align: middle;  /* 高さを揃える */
+}
+.container p a[href*="x.com"] {
+  display: inline-block;
+  text-align: center;
+  margin: 0 auto;
+  font-weight: bold;
+  color: #1DA1F2;
+  font-size: 1.2em;
+}
+.container p {
+  text-align: center;
+}
+.subkeep-logo {
+  display: block;
+  margin: 0 auto 25px auto;
+  max-width: 240px; /* ← ここを大きくしました */
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.howuse p{
+  text-align: left;
 }

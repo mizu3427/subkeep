@@ -46,3 +46,87 @@
   <script src="script.js"></script>
 </body>
 </html>
+
+  <!-- Subkeep本体のロジック -->
+  <script src="script.js"></script>
+
+  <!-- Google API ライブラリ -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://apis.google.com/js/client.js"></script>
+
+  <!-- Google API 初期化とイベント登録 -->
+  <script>
+    const GOOGLE_API_KEY = "YOUR_API_KEY"; // ← あなたのAPIキーに置き換えてね
+    const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID"; // ← あなたのOAuthクライアントIDに置き換えてね
+
+    function initGoogleAPI() {
+      gapi.load("client:auth2", () => {
+        gapi.client.init({
+          apiKey: GOOGLE_API_KEY,
+          clientId: GOOGLE_CLIENT_ID,
+          discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+          scope: "https://www.googleapis.com/auth/calendar.events"
+        }).then(() => {
+          console.log("Google API 初期化完了");
+        });
+      });
+    }
+
+    function createCalendarEvent(sub) {
+      const event = {
+        summary: sub.name,
+        description: `Subkeep契約: ¥${sub.amount} / ${sub.frequency}`,
+        start: { date: sub.nextPaymentDate },
+        end: { date: sub.nextPaymentDate }
+      };
+
+      gapi.auth2.getAuthInstance().signIn().then(() => {
+        gapi.client.calendar.events.insert({
+          calendarId: "primary",
+          resource: event
+        }).then((res) => {
+          console.log("Googleカレンダーに登録完了:", res);
+        }).catch((err) => {
+          console.error("イベント登録失敗:", err);
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initGoogleAPI();
+
+      const form = document.getElementById("subscription-form");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const amount = parseFloat(document.getElementById("amount").value);
+        const frequency = document.getElementById("frequency").value;
+        const startDate = document.getElementById("start-date").value;
+        const nextPaymentDate = document.getElementById("next-payment-date").value;
+        const isRecurring = document.getElementById("is-recurring").checked;
+
+        if (!name || isNaN(amount)) {
+          alert("必要な情報を入力してください");
+          return;
+        }
+
+        const newSub = { name, amount, frequency, startDate, nextPaymentDate, isRecurring };
+        const subs = JSON.parse(localStorage.getItem("subscriptions") || "[]");
+        subs.push(newSub);
+        localStorage.setItem("subscriptions", JSON.stringify(subs));
+
+        // Googleカレンダーに登録
+        createCalendarEvent(newSub);
+
+        // 通知
+        if (Notification.permission === "granted") {
+          new Notification("Subkeep", { body: `${name} を追加しました` });
+        }
+
+        window.location.href = "index.html";
+      });
+    });
+  </script>
+</body>
+</html>

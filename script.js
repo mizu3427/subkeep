@@ -1,44 +1,3 @@
-<!-- Google API ライブラリ読み込み -->
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://apis.google.com/js/client.js"></script>
-<script>
-  // ---- Google Calendar API 初期化 ----
-  const GOOGLE_API_KEY = "AIzaSyAvD-I_CTB27OmRz6xxljY3aeKANQopNjc"; // ← 取得したAPIキー
-  const GOOGLE_CLIENT_ID = "665619032047-4q1bnabklt90fqft9uealaobvnk91rqd.apps.googleusercontent.com"; // ← OAuthクライアントID
-
-  function initGoogleAPI() {
-    gapi.load("client:auth2", () => {
-      gapi.client.init({
-        apiKey: GOOGLE_API_KEY,
-        clientId: GOOGLE_CLIENT_ID,
-        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-        scope: "https://www.googleapis.com/auth/calendar.events"
-      }).then(() => {
-        console.log("Google API 初期化完了");
-      });
-    });
-  }
-
-  function createCalendarEvent(sub) {
-    const event = {
-      summary: sub.name,
-      description: `Subkeep契約: ¥${sub.amount} / ${sub.frequency}`,
-      start: { date: sub.nextPaymentDate },
-      end: { date: sub.nextPaymentDate }
-    };
-
-    gapi.auth2.getAuthInstance().signIn().then(() => {
-      gapi.client.calendar.events.insert({
-        calendarId: "primary",
-        resource: event
-      }).then((res) => {
-        console.log("Googleカレンダーに登録完了:", res);
-      }).catch((err) => {
-        console.error("イベント登録失敗:", err);
-      });
-    });
-  }
-
 // ---- 共通ユーティリティ ----
 function getSubscriptions() {
   return JSON.parse(localStorage.getItem("subscriptions") || "[]");
@@ -231,4 +190,5 @@ document.addEventListener("DOMContentLoaded", () => {
   handleAddPage();
   checkUpcomingPayments();
 });
+
 

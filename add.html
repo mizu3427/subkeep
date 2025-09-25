@@ -30,10 +30,10 @@
       <label>次回支払日（契約終了日）</label>
       <input type="date" id="next-payment-date" required />
 
-<label>
-    <input type="checkbox" id="is-recurring" checked>
-    継続契約する
-  </label><br>
+      <label>
+        <input type="checkbox" id="is-recurring" checked>
+        継続契約する
+      </label><br>
 
       <button type="submit">追加</button>
     </form>
@@ -42,10 +42,6 @@
       <a href="index.html" class="nav-button">戻る</a>
     </div>
   </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
 
   <!-- Subkeep本体のロジック -->
   <script src="script.js"></script>
@@ -56,8 +52,8 @@
 
   <!-- Google API 初期化とイベント登録 -->
   <script>
-    const GOOGLE_API_KEY = "YOUR_API_KEY"; // ← あなたのAPIキーに置き換えてね
-    const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID"; // ← あなたのOAuthクライアントIDに置き換えてね
+    const GOOGLE_API_KEY = "AIzaSyAvD-I_CTB27OmRz6xxljY3aeKANQopNjc";
+    const GOOGLE_CLIENT_ID = "665619032047-4q1bnabklt90fqft9uealaobvnk91rqd.apps.googleusercontent.com";
 
     function initGoogleAPI() {
       gapi.load("client:auth2", () => {
@@ -68,6 +64,8 @@
           scope: "https://www.googleapis.com/auth/calendar.events"
         }).then(() => {
           console.log("Google API 初期化完了");
+        }).catch((err) => {
+          console.error("Google API 初期化失敗:", err);
         });
       });
     }
@@ -89,6 +87,8 @@
         }).catch((err) => {
           console.error("イベント登録失敗:", err);
         });
+      }).catch((err) => {
+        console.error("Google認証失敗:", err);
       });
     }
 
@@ -122,6 +122,12 @@
         // 通知
         if (Notification.permission === "granted") {
           new Notification("Subkeep", { body: `${name} を追加しました` });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then((permission) => {
+            if (permission === "granted") {
+              new Notification("Subkeep", { body: `${name} を追加しました` });
+            }
+          });
         }
 
         window.location.href = "index.html";

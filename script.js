@@ -1,3 +1,45 @@
+// ---- Google API 初期化 ----
+const GOOGLE_API_KEY = "AIzaSyAvD-I_CTB27OmRz6xxljY3aeKANQopNjc";
+const GOOGLE_CLIENT_ID = "665619032047-4q1bnabklt90fqft9uealaobvnk91rqd.apps.googleusercontent.com";
+
+function initGoogleAPI() {
+  gapi.load("client:auth2", () => {
+    gapi.client.init({
+      apiKey: GOOGLE_API_KEY,
+      clientId: GOOGLE_CLIENT_ID,
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+      scope: "https://www.googleapis.com/auth/calendar.events",
+      cookiePolicy: "single_host_origin"
+    }).then(() => {
+      console.log("Google API 初期化完了");
+    }).catch((err) => {
+      console.error("Google API 初期化失敗:", err);
+    });
+  });
+}
+
+function createCalendarEvent(sub) {
+  const event = {
+    summary: sub.name,
+    description: `Subkeep契約: ¥${sub.amount} / ${sub.frequency}`,
+    start: { date: sub.nextPaymentDate },
+    end: { date: sub.nextPaymentDate }
+  };
+
+  gapi.auth2.getAuthInstance().signIn().then(() => {
+    gapi.client.calendar.events.insert({
+      calendarId: "primary",
+      resource: event
+    }).then((res) => {
+      console.log("Googleカレンダーに登録完了:", res);
+    }).catch((err) => {
+      console.error("イベント登録失敗:", err);
+    });
+  }).catch((err) => {
+    console.error("Google認証失敗:", err);
+  });
+}
+
 // ---- 共通ユーティリティ ----
 function getSubscriptions() {
   return JSON.parse(localStorage.getItem("subscriptions") || "[]");
@@ -65,31 +107,16 @@ function renderSubscriptions() {
 
     switch (sub.frequency) {
       case "daily":
-        if (recurring) {
-          monthlyCost = Number(sub.amount) * 30;
-          yearlyCost = monthlyCost * 12;
-        } else {
-          monthlyCost = Number(sub.amount); // 1日分だけ
-          yearlyCost = monthlyCost;
-        }
+        monthlyCost = recurring ? Number(sub.amount) * 30 : Number(sub.amount);
+        yearlyCost = monthlyCost * 12;
         break;
       case "monthly":
-        if (recurring) {
-          monthlyCost = Number(sub.amount);
-          yearlyCost = monthlyCost * 12;
-        } else {
-          monthlyCost = Number(sub.amount); // 1ヶ月分だけ
-          yearlyCost = monthlyCost;
-        }
+        monthlyCost = Number(sub.amount);
+        yearlyCost = recurring ? monthlyCost * 12 : monthlyCost;
         break;
       case "yearly":
-        if (recurring) {
-          yearlyCost = Number(sub.amount);
-          monthlyCost = yearlyCost / 12;
-        } else {
-          yearlyCost = Number(sub.amount); // 1年分だけ
-          monthlyCost = yearlyCost;
-        }
+        yearlyCost = Number(sub.amount);
+        monthlyCost = recurring ? yearlyCost / 12 : yearlyCost;
         break;
     }
 
@@ -129,12 +156,7 @@ function renderSubscriptions() {
     ul.appendChild(li);
   });
 
-  if (subs.length === 0) {
-    noSubs.style.display = "block";
-  } else {
-    noSubs.style.display = "none";
-  }
-
+  noSubs.style.display = subs.length === 0 ? "block" : "none";
   monthlyTotalEl.textContent = `¥${monthlyTotal.toFixed(0)}`;
   yearlyTotalEl.textContent = `¥${yearlyTotal.toFixed(0)}`;
 }
@@ -159,11 +181,13 @@ function handleAddPage() {
       return;
     }
 
+    const newSub = { name, amount, frequency, startDate, nextPaymentDate, isRecurring };
     const subs = getSubscriptions();
-    subs.push({ name, amount, frequency, startDate, nextPaymentDate, isRecurring });
+    subs.push(newSub);
     saveSubscriptions(subs);
 
     sendNotification(`${name} を追加しました`);
+    createCalendarEvent(newSub);
 
     window.location.href = "index.html";
   });
@@ -185,10 +209,9 @@ function renderHistory() {
 
 // ---- ページロード時 ----
 document.addEventListener("DOMContentLoaded", () => {
+  initGoogleAPI();
   renderSubscriptions();
   renderHistory();
   handleAddPage();
   checkUpcomingPayments();
 });
-
-

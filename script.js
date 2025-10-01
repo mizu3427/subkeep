@@ -1,45 +1,3 @@
-// ---- Google API 初期化 ----
-const GOOGLE_API_KEY = "AIzaSyAvD-I_CTB27OmRz6xxljY3aeKANQopNjc";
-const GOOGLE_CLIENT_ID = "665619032047-4q1bnabklt90fqft9uealaobvnk91rqd.apps.googleusercontent.com";
-
-function initGoogleAPI() {
-  gapi.load("client:auth2", () => {
-    gapi.client.init({
-      apiKey: GOOGLE_API_KEY,
-      clientId: GOOGLE_CLIENT_ID,
-      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-      scope: "https://www.googleapis.com/auth/calendar.events",
-      cookiePolicy: "single_host_origin"
-    }).then(() => {
-      console.log("Google API 初期化完了");
-    }).catch((err) => {
-      console.error("Google API 初期化失敗:", err);
-    });
-  });
-}
-
-function createCalendarEvent(sub) {
-  const event = {
-    summary: sub.name,
-    description: `Subkeep契約: ¥${sub.amount} / ${sub.frequency}`,
-    start: { date: sub.nextPaymentDate },
-    end: { date: sub.nextPaymentDate }
-  };
-
-  gapi.auth2.getAuthInstance().signIn().then(() => {
-    gapi.client.calendar.events.insert({
-      calendarId: "primary",
-      resource: event
-    }).then((res) => {
-      console.log("Googleカレンダーに登録完了:", res);
-    }).catch((err) => {
-      console.error("イベント登録失敗:", err);
-    });
-  }).catch((err) => {
-    console.error("Google認証失敗:", err);
-  });
-}
-
 // ---- 共通ユーティリティ ----
 function getSubscriptions() {
   return JSON.parse(localStorage.getItem("subscriptions") || "[]");
@@ -53,8 +11,6 @@ function getHistory() {
 function saveHistory(hist) {
   localStorage.setItem("history", JSON.stringify(hist));
 }
-
-// ---- 通知機能 ----
 function sendNotification(message) {
   if (Notification.permission === "granted") {
     new Notification("Subkeep", { body: message });
@@ -67,6 +23,7 @@ function sendNotification(message) {
   }
 }
 
+// ---- 支払いリマインダー ----
 function checkUpcomingPayments() {
   const subs = getSubscriptions();
   const today = new Date();
@@ -76,16 +33,50 @@ function checkUpcomingPayments() {
     const diffDays = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 3) {
-      sendNotification(`${sub.name} の支払い（契約終了日）は3日後です`);
+      sendNotification(`${sub.name} の支払いは3日後です`);
     } else if (diffDays === 1) {
-      sendNotification(`${sub.name} の支払い（契約終了日）は明日です`);
+      sendNotification(`${sub.name} の支払いは明日です`);
     } else if (diffDays === 0) {
-      sendNotification(`${sub.name} の支払い日（契約終了日）です`);
+      sendNotification(`${sub.name} の支払い日です`);
     }
   });
 }
 
-// ---- index.html 用 ----
+// ---- add.html 処理 ----
+function handleAddPage() {
+  const form = document.getElementById("subscription-form");
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const amount = parseFloat(document.getElementById("amount").value);
+    const frequency = document.getElementById("frequency").value;
+    const startDate = document.getElementById("start-date").value;
+    const nextPaymentDate = document.getElementById("next-payment-date").value;
+    const isRecurring = document.getElementById("is-recurring").checked;
+
+    if (!name || isNaN(amount)) {
+      alert("必要な情報を入力してください");
+      return;
+    }
+
+    const newSub = { name, amount, frequency, startDate, nextPaymentDate, isRecurring };
+    const subs = getSubscriptions();
+    subs.push(newSub);
+    saveSubscriptions(subs);
+
+    const hist = getHistory();
+    hist.push({ ...newSub, addedAt: new Date().toLocaleString() });
+    saveHistory(hist);
+
+    sendNotification(`${name} を追加しました`);
+    window.location.href = "index.html";
+  });
+}
+
+// ---- index.html 表示 ----
 function renderSubscriptions() {
   const subs = getSubscriptions();
   const ul = document.getElementById("subscriptions-ul");
@@ -107,15 +98,15 @@ function renderSubscriptions() {
 
     switch (sub.frequency) {
       case "daily":
-        monthlyCost = recurring ? Number(sub.amount) * 30 : Number(sub.amount);
+        monthlyCost = recurring ? sub.amount * 30 : sub.amount;
         yearlyCost = monthlyCost * 12;
         break;
       case "monthly":
-        monthlyCost = Number(sub.amount);
+        monthlyCost = sub.amount;
         yearlyCost = recurring ? monthlyCost * 12 : monthlyCost;
         break;
       case "yearly":
-        yearlyCost = Number(sub.amount);
+        yearlyCost = sub.amount;
         monthlyCost = recurring ? yearlyCost / 12 : yearlyCost;
         break;
     }
@@ -130,7 +121,7 @@ function renderSubscriptions() {
     infoDiv.className = "subscription-info";
     infoDiv.innerHTML = `
       <strong>${sub.name}</strong>
-      <p>${sub.frequency === "monthly" ? "月額" : sub.frequency === "yearly" ? "年額" : "日額"}: ¥${Number(sub.amount).toLocaleString()}</p>
+      <p>${sub.frequency === "monthly" ? "月額" : sub.frequency === "yearly" ? "年額" : "日額"}: ¥${sub.amount.toLocaleString()}</p>
       <p>契約日: ${sub.startDate}</p>
       <p>次回支払日: ${sub.nextPaymentDate}</p>
       <p>継続契約: ${sub.isRecurring ? "はい" : "いいえ"}</p>
@@ -161,39 +152,7 @@ function renderSubscriptions() {
   yearlyTotalEl.textContent = `¥${yearlyTotal.toFixed(0)}`;
 }
 
-// ---- add.html 用 ----
-function handleAddPage() {
-  const form = document.getElementById("subscription-form");
-  if (!form) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById("name").value.trim();
-    const amount = parseFloat(document.getElementById("amount").value);
-    const frequency = document.getElementById("frequency").value;
-    const startDate = document.getElementById("start-date").value;
-    const nextPaymentDate = document.getElementById("next-payment-date").value;
-    const isRecurring = document.getElementById("is-recurring").checked;
-
-    if (!name || isNaN(amount)) {
-      alert("必要な情報を入力してください");
-      return;
-    }
-
-    const newSub = { name, amount, frequency, startDate, nextPaymentDate, isRecurring };
-    const subs = getSubscriptions();
-    subs.push(newSub);
-    saveSubscriptions(subs);
-
-    sendNotification(`${name} を追加しました`);
-    createCalendarEvent(newSub);
-
-    window.location.href = "index.html";
-  });
-}
-
-// ---- history.html 用 ----
+// ---- history.html 表示 ----
 function renderHistory() {
   const hist = getHistory();
   const ul = document.getElementById("history-ul");
@@ -202,16 +161,24 @@ function renderHistory() {
   ul.innerHTML = "";
   hist.forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = `${item.name} (${item.frequency === "monthly" ? "月額" : item.frequency === "yearly" ? "年額" : "日額"} ¥${item.amount}) 削除日: ${item.deletedAt}`;
+    li.textContent = `${item.name} (${item.frequency === "monthly" ? "月額" : item.frequency === "yearly" ? "年額" : "日額"} ¥${item.amount}) ${item.deletedAt ? "削除日" : "追加日"}: ${item.deletedAt || item.addedAt}`;
     ul.appendChild(li);
   });
 }
 
 // ---- ページロード時 ----
 document.addEventListener("DOMContentLoaded", () => {
-  initGoogleAPI();
-  renderSubscriptions();
-  renderHistory();
-  handleAddPage();
   checkUpcomingPayments();
+
+  if (document.getElementById("subscription-form")) {
+    handleAddPage();
+  }
+
+  if (document.getElementById("subscriptions-ul")) {
+    renderSubscriptions();
+  }
+
+  if (document.getElementById("history-ul")) {
+    renderHistory();
+  }
 });

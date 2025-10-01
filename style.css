@@ -269,3 +269,40 @@ section:last-child {
 .howuse p{
   text-align: left;
 }
+.subkeep-x {
+  width: 100%;         /* 横幅いっぱい */
+  max-width: 400px;    /* 必要なら上限サイズ */
+  height: 100px;       /* 枠の高さ（好きに調整可） */
+  overflow: hidden;    /* はみ出した部分を隠す */
+  margin: 0 auto;      /* 中央寄せ */
+  border-radius: 15px; /* おしゃれに角丸 */
+}
+
+.subkeep-x .ad-img {
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* 枠いっぱいに収める（余分はトリミング） */
+  display: block;
+}
+.ad-banner {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+}
+.subkeep-x {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.subkeep-x img {
+  width: 100%;
+  max-width: 500px;
+  height: 40px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}

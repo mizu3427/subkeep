@@ -1,9 +1,23 @@
+// ---- 定数定義 ----
+const FREQUENCIES = {
+  DAILY: "daily",
+  MONTHLY: "monthly",
+  YEARLY: "yearly"
+};
+
 // ---- OS判定（将来的なGUI切り替え用） ----
 function detectMobileOS() {
   const ua = navigator.userAgent.toLowerCase();
   if (ua.includes("iphone") || ua.includes("ipad")) return "ios";
   if (ua.includes("android")) return "android";
   return "other";
+}
+
+// ---- 日付処理ユーティリティ ----
+function normalizeDate(dateStr) {
+  const date = new Date(dateStr);
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
 
 // ---- ページロード時の初期化 ----
@@ -38,12 +52,17 @@ function saveHistory(hist) {
   localStorage.setItem("history", JSON.stringify(hist));
 }
 function sendNotification(message) {
+  const ua = navigator.userAgent.toLowerCase();
+  const isAndroid = ua.includes("android");
+
   if (Notification.permission === "granted") {
     new Notification("Subkeep", { body: message });
+    if (isAndroid) navigator.vibrate?.(200);
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         new Notification("Subkeep", { body: message });
+        if (isAndroid) navigator.vibrate?.(200);
       }
     });
   }
@@ -53,9 +72,10 @@ function sendNotification(message) {
 function checkUpcomingPayments() {
   const subs = getSubscriptions();
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   subs.forEach((sub) => {
-    const nextDate = new Date(sub.nextPaymentDate);
+    const nextDate = normalizeDate(sub.nextPaymentDate);
     const diffDays = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 3) {
@@ -99,7 +119,6 @@ function handleAddPage() {
 
     sendNotification(`${name} を追加しました`);
 
-    // Android対策：遷移を少し遅らせる
     setTimeout(() => {
       window.location.href = "index.html";
     }, 100);
@@ -127,15 +146,15 @@ function renderSubscriptions() {
     const recurring = sub.isRecurring;
 
     switch (sub.frequency) {
-      case "daily":
+      case FREQUENCIES.DAILY:
         monthlyCost = recurring ? sub.amount * 30 : sub.amount;
         yearlyCost = monthlyCost * 12;
         break;
-      case "monthly":
+      case FREQUENCIES.MONTHLY:
         monthlyCost = sub.amount;
         yearlyCost = recurring ? monthlyCost * 12 : monthlyCost;
         break;
-      case "yearly":
+      case FREQUENCIES.YEARLY:
         yearlyCost = sub.amount;
         monthlyCost = recurring ? yearlyCost / 12 : yearlyCost;
         break;
@@ -151,7 +170,7 @@ function renderSubscriptions() {
     infoDiv.className = "subscription-info";
     infoDiv.innerHTML = `
       <strong>${sub.name}</strong>
-      <p>${sub.frequency === "monthly" ? "月額" : sub.frequency === "yearly" ? "年額" : "日額"}: ¥${sub.amount.toLocaleString()}</p>
+      <p>${sub.frequency === FREQUENCIES.MONTHLY ? "月額" : sub.frequency === FREQUENCIES.YEARLY ? "年額" : "日額"}: ¥${sub.amount.toLocaleString()}</p>
       <p>契約日: ${sub.startDate}</p>
       <p>次回支払日: ${sub.nextPaymentDate}</p>
       <p>継続契約: ${sub.isRecurring ? "はい" : "いいえ"}</p>
@@ -160,8 +179,10 @@ function renderSubscriptions() {
     const delBtn = document.createElement("button");
     delBtn.className = "delete-button";
     delBtn.textContent = "削除";
-    delBtn.type = "button"; // ← これが重要
+    delBtn.type = "button";
     delBtn.onclick = () => {
+      if (!confirm(`${sub.name} を本当に削除しますか？`)) return;
+
       const removed = subs.splice(index, 1)[0];
       saveSubscriptions(subs);
 
@@ -170,7 +191,7 @@ function renderSubscriptions() {
       saveHistory(hist);
 
       sendNotification(`${removed.name} を削除しました`);
-      renderSubscriptions(); // ← 即時反映
+      renderSubscriptions();
     };
 
     li.appendChild(infoDiv);
@@ -192,7 +213,7 @@ function renderHistory() {
   ul.innerHTML = "";
   hist.forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = `${item.name} (${item.frequency === "monthly" ? "月額" : item.frequency === "yearly" ? "年額" : "日額"} ¥${item.amount}) ${item.deletedAt ? "削除日" : "追加日"}: ${item.deletedAt || item.addedAt}`;
+    li.textContent = `${item.name} (${item.frequency === FREQUENCIES.MONTHLY ? "月額" : item.frequency === FREQUENCIES.YEARLY ? "年額" : "日額"} ¥${item.amount}) ${item.deletedAt ? "削除日" : "追加日"}: ${item.deletedAt || item.addedAt}`;
     ul.appendChild(li);
   });
 }

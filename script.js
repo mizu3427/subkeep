@@ -1,3 +1,29 @@
+// ---- OS判定（将来的なGUI切り替え用） ----
+function detectMobileOS() {
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes("iphone") || ua.includes("ipad")) return "ios";
+  if (ua.includes("android")) return "android";
+  return "other";
+}
+
+// ---- ページロード時の初期化 ----
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.classList.add(`os-${detectMobileOS()}`);
+  checkUpcomingPayments();
+
+  if (document.getElementById("subscription-form")) {
+    handleAddPage();
+  }
+
+  if (document.getElementById("subscriptions-ul")) {
+    renderSubscriptions();
+  }
+
+  if (document.getElementById("history-ul")) {
+    renderHistory();
+  }
+});
+
 // ---- 共通ユーティリティ ----
 function getSubscriptions() {
   return JSON.parse(localStorage.getItem("subscriptions") || "[]");
@@ -57,8 +83,8 @@ function handleAddPage() {
     const nextPaymentDate = document.getElementById("next-payment-date").value;
     const isRecurring = document.getElementById("is-recurring").checked;
 
-    if (!name || isNaN(amount)) {
-      alert("必要な情報を入力してください");
+    if (!name || isNaN(amount) || amount <= 0) {
+      alert("有効な名前と金額を入力してください");
       return;
     }
 
@@ -72,7 +98,11 @@ function handleAddPage() {
     saveHistory(hist);
 
     sendNotification(`${name} を追加しました`);
-    window.location.href = "index.html";
+
+    // Android対策：遷移を少し遅らせる
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 100);
   });
 }
 
@@ -130,6 +160,7 @@ function renderSubscriptions() {
     const delBtn = document.createElement("button");
     delBtn.className = "delete-button";
     delBtn.textContent = "削除";
+    delBtn.type = "button"; // ← これが重要
     delBtn.onclick = () => {
       const removed = subs.splice(index, 1)[0];
       saveSubscriptions(subs);
@@ -139,7 +170,7 @@ function renderSubscriptions() {
       saveHistory(hist);
 
       sendNotification(`${removed.name} を削除しました`);
-      renderSubscriptions();
+      renderSubscriptions(); // ← 即時反映
     };
 
     li.appendChild(infoDiv);
@@ -165,20 +196,3 @@ function renderHistory() {
     ul.appendChild(li);
   });
 }
-
-// ---- ページロード時 ----
-document.addEventListener("DOMContentLoaded", () => {
-  checkUpcomingPayments();
-
-  if (document.getElementById("subscription-form")) {
-    handleAddPage();
-  }
-
-  if (document.getElementById("subscriptions-ul")) {
-    renderSubscriptions();
-  }
-
-  if (document.getElementById("history-ul")) {
-    renderHistory();
-  }
-});

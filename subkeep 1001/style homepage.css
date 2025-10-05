@@ -1,0 +1,142 @@
+/* ベース設定 */
+body {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  background-color: #1e1e1e;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  line-height: 1.8;
+}
+
+/* ヘッダー */
+header {
+  background-color: #1e1e1e; /* 背景と統一 */
+  padding: 60px 20px 40px;
+  text-align: center;
+  border-bottom: 2px solid #2a2a2a;
+}
+.logo {
+  max-width: 280px;
+  height: auto;
+  margin-bottom: 16px;
+  filter: drop-shadow(2px 2px 0 #000);
+}
+header p {
+  font-size: 18px;
+  color: #ccc;
+}
+
+/* セクション共通 */
+section {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+section h2 {
+  font-size: 24px;
+  color: #4caf50;
+  margin-bottom: 16px;
+  border-left: 6px solid #4caf50;
+  padding-left: 12px;
+}
+section p {
+  font-size: 16px;
+  color: #ddd;
+  margin-bottom: 20px;
+}
+section ul {
+  list-style: none;
+  padding-left: 0;
+}
+section ul li {
+  margin-bottom: 10px;
+}
+section ul li::before {
+  content: "✔";
+  color: #4caf50;
+  margin-right: 8px;
+}
+
+/* 機能紹介ボックス */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+.feature-box {
+  background-color: #2e2e2e;
+  border: 2px solid #444;
+  padding: 20px;
+  border-radius: 8px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.feature-box.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.feature-box h3 {
+  font-size: 18px;
+  color: #aaffaa;
+  margin-bottom: 10px;
+}
+.feature-box p {
+  font-size: 14px;
+  color: #ccc;
+}
+
+/* 導入事例 */
+section ul li strong {
+  color: #aaffaa;
+}
+
+/* 開発者メッセージの署名 */
+section p:last-child {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: -10px;
+  text-align: right;
+}
+
+/* 比較表 */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.comparison-table th,
+.comparison-table td {
+  border: 1px solid #444;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+}
+.comparison-table th {
+  background-color: #333;
+  color: #aaffaa;
+}
+.comparison-table td {
+  background-color: #2a2a2a;
+  color: #ccc;
+}
+
+/* フッター */
+footer {
+  text-align: center;
+  padding: 30px 20px;
+  background-color: #1e1e1e;
+  border-top: 2px solid #2a2a2a;
+  font-size: 14px;
+  color: #888;
+}
+
+.subkeep-logo {
+  display: block;
+  margin: 0 auto 25px auto;
+  max-width: 240px; /* ← ここを大きくしました */
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}

@@ -4,7 +4,7 @@ body {
   margin: 0;
   padding: 20px;
   background-color: #f0f2f5;
-  color: #ffffff;
+  color: #333;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -126,7 +126,7 @@ section:last-child {
 .subscription-info p {
   margin: 5px 0 0;
   font-size: 0.9em;
-  color: #2c3e50;
+  color: #ffffff;
 }
 .delete-button {
   background-color: #e74c3c;
@@ -275,6 +275,7 @@ section:last-child {
     font-size: 0.65em;
   }
 }
+
 
 
 

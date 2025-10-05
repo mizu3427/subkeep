@@ -228,6 +228,7 @@ section:last-child {
 /* 使い方ページ */
 .howuse p {
   text-align: left;
+  color: #ffffff;
 }
 
 /* スマホ対応 */
@@ -275,6 +276,7 @@ section:last-child {
     font-size: 0.65em;
   }
 }
+
 
 
 

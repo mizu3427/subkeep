@@ -22,7 +22,8 @@ function normalizeDate(dateStr) {
 
 // ---- ページロード時の初期化 ----
 document.addEventListener("DOMContentLoaded", () => {
-  document.body.classList.add(`os-${detectMobileOS()}`);
+  const os = detectMobileOS();
+  document.body.classList.add(`os-${os}`);
   checkUpcomingPayments();
 
   if (document.getElementById("subscription-form")) {
@@ -35,6 +36,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (document.getElementById("history-ul")) {
     renderHistory();
+  }
+
+  // ---- Android専用通知許可リクエスト ----
+  if (os === "android") {
+    Notification.requestPermission().then((perm) => {
+      console.log("Android通知許可:", perm);
+    });
+  }
+
+  // ---- Service Worker登録確認（Androidログ強化） ----
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      console.log("Service Worker registered:", reg);
+    }).catch((err) => {
+      if (os === "android") {
+        console.error("AndroidでService Worker登録失敗:", err);
+      }
+    });
   }
 });
 

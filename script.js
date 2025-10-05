@@ -5,7 +5,7 @@ const FREQUENCIES = {
   YEARLY: "yearly"
 };
 
-// ---- OS判定（将来的なGUI切り替え用） ----
+// ---- OS判定 ----
 function detectMobileOS() {
   const ua = navigator.userAgent.toLowerCase();
   if (ua.includes("iphone") || ua.includes("ipad")) return "ios";
@@ -13,39 +13,31 @@ function detectMobileOS() {
   return "other";
 }
 
-// ---- 日付処理ユーティリティ ----
+// ---- 日付処理 ----
 function normalizeDate(dateStr) {
   const date = new Date(dateStr);
   date.setHours(0, 0, 0, 0);
   return date;
 }
 
-// ---- ページロード時の初期化 ----
+// ---- 初期化 ----
 document.addEventListener("DOMContentLoaded", () => {
   const os = detectMobileOS();
   document.body.classList.add(`os-${os}`);
   checkUpcomingPayments();
 
-  if (document.getElementById("subscription-form")) {
-    handleAddPage();
-  }
+  if (document.getElementById("subscription-form")) handleAddPage();
+  if (document.getElementById("subscriptions-ul")) renderSubscriptions();
+  if (document.getElementById("history-ul")) renderHistory();
 
-  if (document.getElementById("subscriptions-ul")) {
-    renderSubscriptions();
-  }
-
-  if (document.getElementById("history-ul")) {
-    renderHistory();
-  }
-
-  // ---- Android専用通知許可リクエスト ----
+  // Android通知許可
   if (os === "android") {
     Notification.requestPermission().then((perm) => {
       console.log("Android通知許可:", perm);
     });
   }
 
-  // ---- Service Worker登録確認（Androidログ強化） ----
+  // Service Worker登録確認
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").then((reg) => {
       console.log("Service Worker registered:", reg);
@@ -57,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ---- 共通ユーティリティ ----
+// ---- ユーティリティ ----
 function getSubscriptions() {
   return JSON.parse(localStorage.getItem("subscriptions") || "[]");
 }
@@ -74,6 +66,9 @@ function sendNotification(message) {
   const ua = navigator.userAgent.toLowerCase();
   const isAndroid = ua.includes("android");
 
+  console.log("通知送信内容:", message);
+  console.log("通知許可状態:", Notification.permission);
+
   if (Notification.permission === "granted") {
     new Notification("Subkeep", { body: message });
     if (isAndroid) navigator.vibrate?.(200);
@@ -87,7 +82,7 @@ function sendNotification(message) {
   }
 }
 
-// ---- 支払いリマインダー ----
+// ---- リマインダー ----
 function checkUpcomingPayments() {
   const subs = getSubscriptions();
   const today = new Date();
@@ -97,17 +92,13 @@ function checkUpcomingPayments() {
     const nextDate = normalizeDate(sub.nextPaymentDate);
     const diffDays = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 3) {
-      sendNotification(`${sub.name} の支払いは3日後です`);
-    } else if (diffDays === 1) {
-      sendNotification(`${sub.name} の支払いは明日です`);
-    } else if (diffDays === 0) {
-      sendNotification(`${sub.name} の支払い日です`);
-    }
+    if (diffDays === 3) sendNotification(`${sub.name} の支払いは3日後です`);
+    else if (diffDays === 1) sendNotification(`${sub.name} の支払いは明日です`);
+    else if (diffDays === 0) sendNotification(`${sub.name} の支払い日です`);
   });
 }
 
-// ---- add.html 処理 ----
+// ---- 追加処理 ----
 function handleAddPage() {
   const form = document.getElementById("subscription-form");
   if (!form) return;
@@ -121,6 +112,9 @@ function handleAddPage() {
     const startDate = document.getElementById("start-date").value;
     const nextPaymentDate = document.getElementById("next-payment-date").value;
     const isRecurring = document.getElementById("is-recurring").checked;
+
+    console.log("入力された名前:", name);
+    console.log("入力された金額:", amount);
 
     if (!name || isNaN(amount) || amount <= 0) {
       alert("有効な名前と金額を入力してください");
@@ -139,12 +133,12 @@ function handleAddPage() {
     sendNotification(`${name} を追加しました`);
 
     setTimeout(() => {
-      window.location.href = "index.html";
+      window.location.href = location.origin + "/index.html";
     }, 100);
   });
 }
 
-// ---- index.html 表示 ----
+// ---- 表示処理 ----
 function renderSubscriptions() {
   const subs = getSubscriptions();
   const ul = document.getElementById("subscriptions-ul");
@@ -181,6 +175,8 @@ function renderSubscriptions() {
 
     monthlyTotal += monthlyCost;
     yearlyTotal += yearlyCost;
+
+    console.log("表示する契約:", sub.name, "金額:", sub.amount);
 
     const li = document.createElement("li");
     li.className = "subscription-item";
@@ -223,7 +219,7 @@ function renderSubscriptions() {
   yearlyTotalEl.textContent = `¥${yearlyTotal.toFixed(0)}`;
 }
 
-// ---- history.html 表示 ----
+// ---- 履歴表示 ----
 function renderHistory() {
   const hist = getHistory();
   const ul = document.getElementById("history-ul");
@@ -232,7 +228,4 @@ function renderHistory() {
   ul.innerHTML = "";
   hist.forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = `${item.name} (${item.frequency === FREQUENCIES.MONTHLY ? "月額" : item.frequency === FREQUENCIES.YEARLY ? "年額" : "日額"} ¥${item.amount}) ${item.deletedAt ? "削除日" : "追加日"}: ${item.deletedAt || item.addedAt}`;
-    ul.appendChild(li);
-  });
-}
+    li.textContent = `${item.name} (${item.frequency === FREQUENCIES.MONTHLY ? "月額" : item.frequency === FREQUENCIES.YEARLY ? "年額" : "日額"} ¥${item.amount

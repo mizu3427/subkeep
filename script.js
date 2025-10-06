@@ -11,15 +11,24 @@ function getHistory() {
 function saveHistory(hist) {
   localStorage.setItem("history", JSON.stringify(hist));
 }
-function sendNotification(message) {
-  if (Notification.permission === "granted") {
-    new Notification("Subkeep", { body: message });
-  } else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
-        new Notification("Subkeep", { body: message });
-      }
+
+// ---- 置換: sendNotification ----
+async function sendNotification(message) {
+  // 権限確認＆要求
+  if (Notification.permission !== "granted") {
+    const p = await Notification.requestPermission();
+    if (p !== "granted") return;
+  }
+  // SW経由で表示（バックグラウンドで出せるのはSWだけ）
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: "LOCAL_NOTIFY",
+      title: "Subkeep",
+      options: { body: message }
     });
+  } else {
+    // 初回ロード直後など controller 不在の保険
+    new Notification("Subkeep", { body: message });
   }
 }
 
@@ -47,7 +56,7 @@ function handleAddPage() {
   const form = document.getElementById("subscription-form");
   if (!form) return;
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const name = document.getElementById("name").value.trim();
@@ -71,7 +80,7 @@ function handleAddPage() {
     hist.push({ ...newSub, addedAt: new Date().toLocaleString() });
     saveHistory(hist);
 
-    sendNotification(`${name} を追加しました`);
+    await sendNotification(`${name} を追加しました`);
     window.location.href = "index.html";
   });
 }
@@ -130,7 +139,7 @@ function renderSubscriptions() {
     const delBtn = document.createElement("button");
     delBtn.className = "delete-button";
     delBtn.textContent = "削除";
-    delBtn.onclick = () => {
+    delBtn.onclick = async () => {
       const removed = subs.splice(index, 1)[0];
       saveSubscriptions(subs);
 
@@ -138,7 +147,7 @@ function renderSubscriptions() {
       hist.push({ ...removed, deletedAt: new Date().toLocaleString() });
       saveHistory(hist);
 
-      sendNotification(`${removed.name} を削除しました`);
+      await sendNotification(`${removed.name} を削除しました`);
       renderSubscriptions();
     };
 
